@@ -8,26 +8,58 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// SetupRouter は Gin のルーターを初期化し、各エンドポイントにコントローラを紐づけて返す
 func SetupRouter() *gin.Engine {
-	r := gin.Default() // Ginのデフォルトルーターを作成
+	r := gin.Default() // デフォルトのルーター
 
-	// Firestoreクライアントを使ったリポジトリを生成
+	// =========================
+	// ユーザーリポジトリとコントローラの初期化
+	// =========================
+
+	// Firestore クライアントを使ってユーザーリポジトリを初期化
+	userRepo := &repository.FirestoreUserRepository{
+		Client: firebase.Client,
+	}
+
+	// ユーザーコントローラを初期化（リポジトリを注入）
+	userController := &controller.UserController{
+		Repo: userRepo,
+	}
+
+	// =========================
+	// 投稿リポジトリとコントローラの初期化
+	// =========================
+
+	// Firestore クライアントを使って投稿リポジトリを初期化
 	postRepo := &repository.FirestorePostRepository{
 		Client: firebase.Client,
 	}
 
-	// コントローラーにリポジトリをセット
+	// 投稿コントローラを初期化（リポジトリを注入）
 	postController := &controller.PostController{
 		Repo: postRepo,
 	}
 
-	// ルーティング設定
-	r.GET("/posts", postController.GetPosts)             // 投稿一覧取得のエンドポイント
-	r.POST("/posts", postController.CreatePost)          // 投稿作成のエンドポイント
-	r.GET("/posts/:id", postController.GetPostByID)      // ID指定で投稿取得のエンドポイント
-	r.PUT("/posts/:id", postController.UpdatePost)       // ID指定で投稿更新のエンドポイント
-	r.DELETE("/posts/:id", postController.DeletePost)    // ID指定で投稿削除のエンドポイント
-	r.DELETE("/posts", postController.DeleteAllPosts)    // 全投稿一括削除のエンドポイント
+	// =========================
+	// ユーザー関連のルーティング
+	// =========================
 
-	return r // ルーターを返す
+	r.POST("/users", userController.CreateUser)         // ユーザー作成
+	r.GET("/users", userController.GetUsers)            // 全ユーザー取得（管理者用）
+	r.GET("/users/:userID", userController.GetUser)     // 指定ユーザー取得
+	r.PUT("/users/:userID", userController.UpdateUser)  // 指定ユーザー更新
+	r.DELETE("/users/:userID", userController.DeleteUser) // 指定ユーザー削除
+
+	// =========================
+	// 投稿関連のルーティング
+	// =========================
+
+	r.GET("/users/:userID/posts", postController.GetPosts)               // 全投稿取得
+	r.POST("/users/:userID/posts", postController.CreatePost)            // 投稿作成
+	r.GET("/users/:userID/posts/:postID", postController.GetPostByID)    // 投稿取得
+	r.PUT("/users/:userID/posts/:postID", postController.UpdatePost)     // 投稿更新
+	r.DELETE("/users/:userID/posts/:postID", postController.DeletePost)  // 投稿削除
+	r.DELETE("/users/:userID/posts", postController.DeleteAllPosts)      // 全投稿削除
+
+	return r
 }

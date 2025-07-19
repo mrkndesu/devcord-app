@@ -52,18 +52,101 @@ Devcord は、以下の2つの使い方を実現することを目的として�
 ## 🧩 設計構想
 
 ### ER図（MVP時点）
-![ER図](https://github.com/user-attachments/assets/fd78e575-cccd-411e-a921-628f2c66ec64)
+![ER図](https://github.com/user-attachments/assets/17cb5ab0-b296-4c1a-831e-aeb6fcc16a3e)
 
 現在はユーザーと投稿のみの最小構成。今後はgroups, group_menbers等を追加予定。
 
 ---
 
+## Devcord API - ユーザー＆投稿APIまとめ
+
+### 1. ルーティング一覧
+
+| メソッド | エンドポイント                        | 説明                          |
+|----------|------------------------------------|-------------------------------|
+| POST     | `/users`                           | 新規ユーザー作成（登録）      |
+| GET      | `/users`                           | ユーザー一覧取得（管理者用）  |
+| GET      | `/users/:userID`                   | 指定ユーザー情報取得          |
+| PUT      | `/users/:userID`                   | 指定ユーザー情報更新          |
+| DELETE   | `/users/:userID`                   | 指定ユーザー削除（投稿も削除）|
+
+| メソッド | エンドポイント                        | 説明                          |
+|----------|------------------------------------|-------------------------------|
+| GET      | `/users/:userID/posts`             | 指定ユーザーの投稿一覧取得    |
+| POST     | `/users/:userID/posts`             | 指定ユーザーの投稿作成        |
+| GET      | `/users/:userID/posts/:postID`    | 指定ユーザー・投稿IDの投稿取得|
+| PUT      | `/users/:userID/posts/:postID`    | 指定ユーザー・投稿IDの投稿更新|
+| DELETE   | `/users/:userID/posts/:postID`    | 指定ユーザー・投稿IDの投稿削除|
+| DELETE   | `/users/:userID/posts`             | 指定ユーザーの全投稿削除      |
+
+---
+
+### 2. ユーザーAPIの処理概要
+
+- **CreateUser**  
+  リクエストボディにユーザー情報(JSON)を受け取り、新規ユーザーをFirestoreに作成。  
+  作成時に現在の年・月も登録します。
+
+- **GetUsers**  
+  Firestoreから全ユーザーを取得し、一覧を返します。
+
+- **GetUser**  
+  `userID`パラメータを受け取り、該当ユーザーを取得して返します。
+
+- **UpdateUser**  
+  `userID`パラメータと更新内容(JSON)を受け取り、ユーザー情報を更新します。
+
+- **DeleteUser**  
+  `userID`パラメータを受け取り、そのユーザーの全投稿を削除後、ユーザー情報自体を削除します。
+
+---
+
+### 3. 投稿APIの処理概要
+
+- **GetPosts**  
+  指定ユーザーの投稿一覧を取得して返します。
+
+- **CreatePost**  
+  リクエストボディに投稿内容(JSON)を受け取り、新規投稿を作成します。投稿日時はサーバーでセットします。
+
+- **GetPostByID**  
+  指定ユーザーの指定投稿IDの投稿を取得して返します。
+
+- **UpdatePost**  
+  投稿の更新情報を受け取り、指定投稿を更新します。
+
+- **DeletePost**  
+  指定投稿を削除します。
+
+- **DeleteAllPosts**  
+  指定ユーザーの全投稿を一括削除します。
+
+---
+
+### 4. Firestore データ構造のイメージ
+Firestore は以下のような構造でデータを保存しています。
+```
+users（コレクション）
+├─ {userID}（ドキュメント）
+│ ├─ ユーザー情報（handle、name、emailなど）
+│ └─ posts（サブコレクション）
+│ ├─ {postID}（ドキュメント）
+│ │ ├─ user_id（ユーザーID）
+│ │ ├─ title（投稿タイトル）
+│ │ ├─ content（投稿内容）
+│ │ └─ created_at（作成日時）
+```
+
+---
+
 ## 🚧 現在の進捗状況
 
-バックエンドの投稿機能（CRUD）が一通り完成しました。
+バックエンドのユーザーと投稿の（CRUD）が一通り完成しました。
+ユーザーと投稿の関連付けもしました。
 次はフロントエンドの CRUD を作成していきます。
 
 - [x] 投稿の作成・取得・更新・削除（CRUD完了）
-- [ ] 投稿とユーザーの関連付け
+- [x] ユーザーの作成・取得・更新・削除（CRUD完了）
+- [x] ユーザー投稿の関連付け
 - [ ] Firebase Authenticationの実装
 - [ ] グループ投稿・コメント・リアクション機能の追加

@@ -13,93 +13,94 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// FirestorePostRepository は Firestore を使った投稿リポジトリ
+// FirestorePostRepository は Firestore を使った投稿リポジトリの実装
+// users コレクションの posts サブコレクションを操作する
 type FirestorePostRepository struct {
 	Client *firestore.Client // Firestore クライアント
 }
 
-// GetAll は posts コレクションの全ドキュメントを取得し、Postスライスで返す
-func (r *FirestorePostRepository) GetAll(ctx context.Context) ([]model.Post, error) {
-	iter := r.Client.Collection("posts").Documents(ctx) // ドキュメント取得用イテレータ
-	defer iter.Stop()                                   // イテレータ解放
+// GetAll は指定ユーザーの全投稿を取得する
+func (r *FirestorePostRepository) GetAll(ctx context.Context, userID string) ([]model.Post, error) {
+	iter := r.Client.Collection("users").Doc(userID).Collection("posts").Documents(ctx) 
+	defer iter.Stop() 
 
 	var posts []model.Post
 	for {
-		doc, err := iter.Next() // 次のドキュメントを取得
+		doc, err := iter.Next()
 		if err != nil {
-			break // ドキュメントが無くなったらループ終了
+			break 
 		}
 
 		var post model.Post
 		if err := doc.DataTo(&post); err != nil {
-			continue // デコード失敗したらスキップ
+			continue 
 		}
 
-		post.ID = doc.Ref.ID // FirestoreのドキュメントIDをセット
+		post.ID = doc.Ref.ID 
 		posts = append(posts, post)
 	}
 	return posts, nil
 }
 
-// Create は posts コレクションに新しい投稿を追加
-func (r *FirestorePostRepository) Create(ctx context.Context, post *model.Post) error {
-	docRef, _, err := r.Client.Collection("posts").Add(ctx, post) // 新規ドキュメント追加
+// Create は指定ユーザーの posts に新しい投稿を追加する
+func (r *FirestorePostRepository) Create(ctx context.Context, userID string, post *model.Post) error {
+	docRef, _, err := r.Client.Collection("users").Doc(userID).Collection("posts").Add(ctx, post) 
 	if err != nil {
 		return err
 	}
-	post.ID = docRef.ID // 追加されたドキュメントIDをモデルにセット
+	post.ID = docRef.ID 
 	return nil
 }
 
-// GetByID は指定IDの投稿を取得
-func (r *FirestorePostRepository) GetByID(ctx context.Context, id string) (*model.Post, error) {
-	doc, err := r.Client.Collection("posts").Doc(id).Get(ctx) // ドキュメント取得
+// GetByID は指定ユーザーの特定投稿を取得する
+func (r *FirestorePostRepository) GetByID(ctx context.Context, userID, id string) (*model.Post, error) {
+	doc, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(id).Get(ctx)
 	if err != nil {
-		if status.Code(err) == codes.NotFound { // ドキュメントが無い場合の判定
+		if status.Code(err) == codes.NotFound {
 			return nil, fmt.Errorf("not found")
 		}
 		return nil, err
 	}
 
 	var post model.Post
-	if err := doc.DataTo(&post); err != nil { // ドキュメントのデータをモデルに変換
+	if err := doc.DataTo(&post); err != nil {
 		return nil, err
 	}
-	post.ID = doc.Ref.ID // ドキュメントIDをセット
+	post.ID = doc.Ref.ID
 	return &post, nil
 }
 
-// Update は指定IDの投稿を更新する
-func (r *FirestorePostRepository) Update(ctx context.Context, id string, post model.Post) error {
-	_, err := r.Client.Collection("posts").Doc(id).Set(ctx, map[string]interface{}{
+// Update は指定ユーザーの特定投稿を更新する
+func (r *FirestorePostRepository) Update(ctx context.Context, userID, id string, post model.Post) error {
+	_, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(id).Set(ctx, map[string]interface{}{
 		"user_id":    post.UserID,
 		"title":      post.Title,
 		"content":    post.Content,
-		"updated_at": time.Now(),
-	}, firestore.MergeAll) // MergeAllでフィールドをマージ（上書き）
+		"updated_at": time.Now(), 
+	}, firestore.MergeAll) 
 	return err
 }
 
-// Delete は指定IDの投稿を削除する
-func (r *FirestorePostRepository) Delete(ctx context.Context, id string) error {
-	_, err := r.Client.Collection("posts").Doc(id).Delete(ctx) // ドキュメント削除
+// Delete は指定ユーザーの特定投稿を削除する
+func (r *FirestorePostRepository) Delete(ctx context.Context, userID, id string) error {
+	_, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(id).Delete(ctx)
 	return err
 }
 
-// DeleteAll は posts コレクション内の全投稿を一括削除する
-func (r *FirestorePostRepository) DeleteAll(ctx context.Context) error {
-	iter := r.Client.Collection("posts").Documents(ctx) // ドキュメント取得イテレータ
-	defer iter.Stop()                                    // イテレータ解放
+// DeleteAll は指定ユーザーの全投稿を削除する
+func (r *FirestorePostRepository) DeleteAll(ctx context.Context, userID string) error {
+	iter := r.Client.Collection("users").Doc(userID).Collection("posts").Documents(ctx)
+	defer iter.Stop()
 
 	for {
-		doc, err := iter.Next() // 次のドキュメント取得
+		doc, err := iter.Next()
 		if err != nil {
-			if err == iterator.Done { // ドキュメントがなくなったら終了
+			if err == iterator.Done {
 				break
 			}
-			return err // 取得中エラー発生時はそのまま返す
+			return err
 		}
-		if _, err := doc.Ref.Delete(ctx); err != nil { // ドキュメント削除
+		if _, err := doc.Ref.Delete(ctx); err != nil {
 			return err
 		}
 	}

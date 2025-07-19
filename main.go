@@ -10,24 +10,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// main はアプリの起動処理
 func main() {
-	// Firebase初期化、失敗したらログ出力して終了
+	// Firebase を初期化。失敗したら終了
 	if err := firebase.Init(); err != nil {
 		log.Fatalf("🔥 Firebase init failed: %v", err)
 	}
 
-	// ルーターのセットアップ
+	// ルーターを設定
 	r := router.SetupRouter()
 
-	// ルートパスにアクセスされたらWelcomeメッセージを返す
+	// "/" にアクセスされたときにメッセージを返す
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "Welcome to Devcord API!",
 		})
 	})
 
-	// サーバー起動、失敗したらログ出力して終了
+	// ポート8080でサーバーを起動。失敗したら終了
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("🚫 Server failed to start: %v", err)
 	}
 }
+

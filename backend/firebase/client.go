@@ -11,36 +11,39 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-// Client は Firestore クライアントをグローバルに保持
+// Client は Firestore クライアントをグローバルに保持する変数
 var Client *firestore.Client
 
-// Init は Firebase と Firestore クライアントの初期化を行う
+// Init は Firebase と Firestore クライアントを初期化する
+// .env から環境変数を読み込み、認証情報を使って Firebase アプリと Firestore クライアントを作成し、
+// グローバル変数 Client にセットする
+// エラーがあればログに出力して返す
 func Init() error {
-
-	// .env ファイルを読み込み環境変数を設定
+	// .env ファイルを読み込む
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
 	ctx := context.Background()
-	// サービスアカウントキーのパスを環境変数から取得し認証オプションを作成
+
+	// 認証情報ファイルのパスを環境変数から取得
 	opt := option.WithCredentialsFile(os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 
-	// Firebase アプリの初期化
+	// Firebase アプリを初期化
 	app, err := firebase.NewApp(ctx, nil, opt)
 	if err != nil {
 		log.Printf("error initializing firebase app: %v\n", err)
 		return err
 	}
 
-	// Firestore クライアントの生成
+	// Firestore クライアントを生成
 	firestoreClient, err := app.Firestore(ctx)
 	if err != nil {
 		log.Printf("error initializing firestore: %v\n", err)
 		return err
 	}
 
-	// グローバル変数に Firestore クライアントをセット
+	// グローバル変数にセット
 	Client = firestoreClient
 
 	log.Println("🔥 Firestore initialized successfully")
