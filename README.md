@@ -36,7 +36,7 @@ Devcord は、以下の2つの使い方を実現することを目的として�
 ### バックエンド
 - 言語：Go
 - フレームワーク：Gin
-- データベース：Firebase Firestore（予定）
+- データベース：Firebase Firestore
 
 ### サードパーティサービス
 - Firebase（Authentication、Firestore）
