@@ -1,5 +1,4 @@
 *.env
 *serviceAccountKey.json
-*post_controller_test.go
 
 .vscode
