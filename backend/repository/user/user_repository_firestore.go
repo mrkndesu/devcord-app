@@ -74,20 +74,39 @@ func (r *UserRepositoryFirestore) GetByID(ctx context.Context, id string) (*mode
 
 // Update は指定IDのユーザー情報を Firestore で更新する
 func (r *UserRepositoryFirestore) Update(ctx context.Context, id string, updatedUser model.User) error {
+	updateData := make(map[string]interface{})
 
+	if updatedUser.Handle != "" {
+		updateData["handle"] = updatedUser.Handle
+	}
+	if updatedUser.Name != "" {
+		updateData["name"] = updatedUser.Name
+	}
+	if updatedUser.Email != "" {
+		updateData["email"] = updatedUser.Email
+	}
+	if updatedUser.Password != "" {
+		updateData["password"] = updatedUser.Password
+	}
+	if updatedUser.AvatarURL != "" {
+		updateData["avatar_url"] = updatedUser.AvatarURL
+	}
+	if updatedUser.Description != "" {
+		updateData["description"] = updatedUser.Description
+	}
+	if updatedUser.BirthDate != "" {
+		updateData["birth_date"] = updatedUser.BirthDate
+	}
+	if updatedUser.CreatedYear != 0 {
+		updateData["created_year"] = updatedUser.CreatedYear
+	}
+	if updatedUser.CreatedMonth != 0 {
+		updateData["created_month"] = updatedUser.CreatedMonth
+	}
 
-	_, err := r.Client.Collection("users").Doc(id).Set(ctx, map[string]interface{}{
-		"handle":        updatedUser.Handle,
-		"name":          updatedUser.Name,
-		"email":         updatedUser.Email,    
-		"password":      updatedUser.Password, 
-		"avatar_url":    updatedUser.AvatarURL,
-		"description":   updatedUser.Description,
-		"birth_date":    updatedUser.BirthDate,
-		"created_year":  updatedUser.CreatedYear,
-		"created_month": updatedUser.CreatedMonth,
-		"updated_at":    time.Now(), // 更新日時を記録
-	}, firestore.MergeAll)
+	updateData["updated_at"] = time.Now()
+
+	_, err := r.Client.Collection("users").Doc(id).Set(ctx, updateData, firestore.MergeAll)
 	return err
 }
 
