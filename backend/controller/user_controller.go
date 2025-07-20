@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/mrkndesu/devcord-app/backend/model"
-	"github.com/mrkndesu/devcord-app/backend/repository"
+	"github.com/mrkndesu/devcord-app/backend/repository/user"
 
 	"github.com/gin-gonic/gin"
 	"google.golang.org/api/iterator"
@@ -90,7 +90,7 @@ func (uc *UserController) DeleteUser(c *gin.Context) {
 	userID := c.Param("userID")
 
 	// ユーザーの投稿を全件削除
-	postsIter := uc.Repo.(*repository.FirestoreUserRepository).Client.Collection("users").Doc(userID).Collection("posts").Documents(ctx)
+	postsIter := uc.Repo.(*repository.UserRepositoryFirestore).Client.Collection("users").Doc(userID).Collection("posts").Documents(ctx)
 	for {
 		doc, err := postsIter.Next()
 		if err == iterator.Done {

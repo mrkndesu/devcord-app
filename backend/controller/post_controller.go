@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/mrkndesu/devcord-app/backend/model"
-	"github.com/mrkndesu/devcord-app/backend/repository"
+	"github.com/mrkndesu/devcord-app/backend/repository/post"
 
 	"github.com/gin-gonic/gin"
 )
