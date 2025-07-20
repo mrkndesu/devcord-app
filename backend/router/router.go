@@ -2,8 +2,10 @@ package router
 
 import (
 	"github.com/mrkndesu/devcord-app/backend/controller"
-	"github.com/mrkndesu/devcord-app/backend/repository"
 	"github.com/mrkndesu/devcord-app/backend/firebase"
+
+	postRepo "github.com/mrkndesu/devcord-app/backend/repository/post"
+	userRepo "github.com/mrkndesu/devcord-app/backend/repository/user"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,7 +19,7 @@ func SetupRouter() *gin.Engine {
 	// =========================
 
 	// Firestore クライアントを使ってユーザーリポジトリを初期化
-	userRepo := &repository.FirestoreUserRepository{
+	userRepo := &userRepo.UserRepositoryFirestore{
 		Client: firebase.Client,
 	}
 
@@ -31,7 +33,7 @@ func SetupRouter() *gin.Engine {
 	// =========================
 
 	// Firestore クライアントを使って投稿リポジトリを初期化
-	postRepo := &repository.FirestorePostRepository{
+	postRepo := &postRepo.PostRepositoryFirestore{
 		Client: firebase.Client,
 	}
 
