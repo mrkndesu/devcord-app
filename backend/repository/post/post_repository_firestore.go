@@ -71,13 +71,35 @@ func (r *PostRepositoryFirestore) GetByID(ctx context.Context, userID, postID st
 }
 
 // Update は指定ユーザーの特定投稿を更新する
+// func (r *PostRepositoryFirestore) Update(ctx context.Context, userID, postID string, post model.Post) error {
+// 	_, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(postID).Set(ctx, map[string]interface{}{
+// 		"user_id":    post.UserID,
+// 		"title":      post.Title,
+// 		"content":    post.Content,
+// 		"updated_at": time.Now(), 
+// 	}, firestore.MergeAll) 
+// 	return err
+// }
 func (r *PostRepositoryFirestore) Update(ctx context.Context, userID, postID string, post model.Post) error {
-	_, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(postID).Set(ctx, map[string]interface{}{
-		"user_id":    post.UserID,
-		"title":      post.Title,
-		"content":    post.Content,
-		"updated_at": time.Now(), 
-	}, firestore.MergeAll) 
+	updateData := make(map[string]interface{})
+
+	if post.UserID != "" {
+		updateData["user_id"] = post.UserID
+	}
+	if post.Title != "" {
+		updateData["title"] = post.Title
+	}
+	if post.Content != "" {
+		updateData["content"] = post.Content
+	}
+
+	updateData["updated_at"] = time.Now()
+
+	_, err := r.Client.
+		Collection("users").Doc(userID).
+		Collection("posts").Doc(postID).
+		Set(ctx, updateData, firestore.MergeAll)
+
 	return err
 }
 
