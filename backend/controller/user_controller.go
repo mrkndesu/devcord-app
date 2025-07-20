@@ -71,10 +71,7 @@ func (uc *UserController) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	if id != updatedUser.ID {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ID mismatch"})
-		return
-	}
+	updatedUser.ID = id
 
 	if err := uc.Repo.Update(ctx, id, updatedUser); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
