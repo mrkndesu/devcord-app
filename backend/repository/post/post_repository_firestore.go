@@ -13,14 +13,14 @@ import (
 	"google.golang.org/api/iterator"
 )
 
-// FirestorePostRepository は Firestore を使った投稿リポジトリの実装
+// PostRepositoryFirestore は Firestore を使った投稿リポジトリの実装
 // users コレクションの posts サブコレクションを操作する
-type FirestorePostRepository struct {
+type PostRepositoryFirestore struct {
 	Client *firestore.Client // Firestore クライアント
 }
 
 // GetAll は指定ユーザーの全投稿を取得する
-func (r *FirestorePostRepository) GetAll(ctx context.Context, userID string) ([]model.Post, error) {
+func (r *PostRepositoryFirestore) GetAll(ctx context.Context, userID string) ([]model.Post, error) {
 	iter := r.Client.Collection("users").Doc(userID).Collection("posts").Documents(ctx) 
 	defer iter.Stop() 
 
@@ -43,7 +43,7 @@ func (r *FirestorePostRepository) GetAll(ctx context.Context, userID string) ([]
 }
 
 // Create は指定ユーザーの posts に新しい投稿を追加する
-func (r *FirestorePostRepository) Create(ctx context.Context, userID string, post *model.Post) error {
+func (r *PostRepositoryFirestore) Create(ctx context.Context, userID string, post *model.Post) error {
 	docRef, _, err := r.Client.Collection("users").Doc(userID).Collection("posts").Add(ctx, post) 
 	if err != nil {
 		return err
@@ -53,8 +53,8 @@ func (r *FirestorePostRepository) Create(ctx context.Context, userID string, pos
 }
 
 // GetByID は指定ユーザーの特定投稿を取得する
-func (r *FirestorePostRepository) GetByID(ctx context.Context, userID, id string) (*model.Post, error) {
-	doc, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(id).Get(ctx)
+func (r *PostRepositoryFirestore) GetByID(ctx context.Context, userID, postID string) (*model.Post, error) {
+	doc, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(postID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
 			return nil, fmt.Errorf("not found")
@@ -71,8 +71,8 @@ func (r *FirestorePostRepository) GetByID(ctx context.Context, userID, id string
 }
 
 // Update は指定ユーザーの特定投稿を更新する
-func (r *FirestorePostRepository) Update(ctx context.Context, userID, id string, post model.Post) error {
-	_, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(id).Set(ctx, map[string]interface{}{
+func (r *PostRepositoryFirestore) Update(ctx context.Context, userID, postID string, post model.Post) error {
+	_, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(postID).Set(ctx, map[string]interface{}{
 		"user_id":    post.UserID,
 		"title":      post.Title,
 		"content":    post.Content,
@@ -82,13 +82,13 @@ func (r *FirestorePostRepository) Update(ctx context.Context, userID, id string,
 }
 
 // Delete は指定ユーザーの特定投稿を削除する
-func (r *FirestorePostRepository) Delete(ctx context.Context, userID, id string) error {
-	_, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(id).Delete(ctx)
+func (r *PostRepositoryFirestore) Delete(ctx context.Context, userID, postID string) error {
+	_, err := r.Client.Collection("users").Doc(userID).Collection("posts").Doc(postID).Delete(ctx)
 	return err
 }
 
 // DeleteAll は指定ユーザーの全投稿を削除する
-func (r *FirestorePostRepository) DeleteAll(ctx context.Context, userID string) error {
+func (r *PostRepositoryFirestore) DeleteAll(ctx context.Context, userID string) error {
 	iter := r.Client.Collection("users").Doc(userID).Collection("posts").Documents(ctx)
 	defer iter.Stop()
 
