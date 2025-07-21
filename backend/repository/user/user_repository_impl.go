@@ -62,8 +62,8 @@ func (r *userRepositoryImpl) GetAll(ctx context.Context) ([]model.User, error) {
 }
 
 // GetByID は指定IDのユーザーを取得して返す
-func (r *userRepositoryImpl) GetByID(ctx context.Context, id string) (*model.User, error) {
-	doc, err := r.client.Collection("users").Doc(id).Get(ctx)
+func (r *userRepositoryImpl) GetByID(ctx context.Context, userID string) (*model.User, error) {
+	doc, err := r.client.Collection("users").Doc(userID).Get(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -76,13 +76,13 @@ func (r *userRepositoryImpl) GetByID(ctx context.Context, id string) (*model.Use
 }
 
 // Update は指定IDのユーザー情報を上書き保存する
-func (r *userRepositoryImpl) Update(ctx context.Context, id string, updatedUser model.User) error {
-	_, err := r.client.Collection("users").Doc(id).Set(ctx, updatedUser)
+func (r *userRepositoryImpl) Update(ctx context.Context, userID string, updatedUser model.User) error {
+	_, err := r.client.Collection("users").Doc(userID).Set(ctx, updatedUser)
 	return err
 }
 
 // Delete は指定IDのユーザーを削除する
-func (r *userRepositoryImpl) Delete(ctx context.Context, id string) error {
-	_, err := r.client.Collection("users").Doc(id).Delete(ctx)
+func (r *userRepositoryImpl) Delete(ctx context.Context, userID string) error {
+	_, err := r.client.Collection("users").Doc(userID).Delete(ctx)
 	return err
 }

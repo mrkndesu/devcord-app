@@ -55,8 +55,8 @@ func (r *UserRepositoryFirestore) GetAll(ctx context.Context) ([]model.User, err
 }
 
 // GetByID は指定IDのユーザーを取得する
-func (r *UserRepositoryFirestore) GetByID(ctx context.Context, id string) (*model.User, error) {
-	doc, err := r.Client.Collection("users").Doc(id).Get(ctx)
+func (r *UserRepositoryFirestore) GetByID(ctx context.Context, userID string) (*model.User, error) {
+	doc, err := r.Client.Collection("users").Doc(userID).Get(ctx)
 	if err != nil {
 		if status.Code(err) == codes.NotFound {
 			return nil, fmt.Errorf("not found")
@@ -73,7 +73,7 @@ func (r *UserRepositoryFirestore) GetByID(ctx context.Context, id string) (*mode
 }
 
 // Update は指定IDのユーザー情報を Firestore で更新する
-func (r *UserRepositoryFirestore) Update(ctx context.Context, id string, updatedUser model.User) error {
+func (r *UserRepositoryFirestore) Update(ctx context.Context, userID string, updatedUser model.User) error {
 	updateData := make(map[string]interface{})
 
 	if updatedUser.Handle != "" {
@@ -106,13 +106,13 @@ func (r *UserRepositoryFirestore) Update(ctx context.Context, id string, updated
 
 	updateData["updated_at"] = time.Now()
 
-	_, err := r.Client.Collection("users").Doc(id).Set(ctx, updateData, firestore.MergeAll)
+	_, err := r.Client.Collection("users").Doc(userID).Set(ctx, updateData, firestore.MergeAll)
 	return err
 }
 
 // Delete は指定IDのユーザーを Firestore から削除する
-func (r *UserRepositoryFirestore) Delete(ctx context.Context, id string) error {
-	_, err := r.Client.Collection("users").Doc(id).Delete(ctx)
+func (r *UserRepositoryFirestore) Delete(ctx context.Context, userID string) error {
+	_, err := r.Client.Collection("users").Doc(userID).Delete(ctx)
 	return err
 }
 
