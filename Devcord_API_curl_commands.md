@@ -39,7 +39,7 @@ curl -X PUT http://localhost:8080/users/<userID> \
 ```
 
 ### ❌ 指定ユーザー削除（DELETE /users/:userID）
-🚨ユーザーを作成すると全投稿を作成される
+🚨ユーザーを削除すると全投稿も削除されます。
 ```
 curl -X DELETE http://localhost:8080/users/<userID>
 ```
